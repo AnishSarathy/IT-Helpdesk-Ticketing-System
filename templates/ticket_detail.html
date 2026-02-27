@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Ticket #{{ '%04d'|format(ticket.id) }} — HelpDesk Pro{% endblock %}
+{% block content %}
+
+<div style="margin-top:1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+  <a href="{{ url_for('dashboard') }}" class="btn btn-ghost" style="padding:.4rem .75rem;font-size:.8rem">← Back</a>
+  <span class="tid" style="font-size:1rem">#{{ '%04d'|format(ticket.id) }}</span>
+  <span class="badge badge-{{ ticket.status|replace(' ','') }}">{{ ticket.status }}</span>
+  <span class="badge badge-{{ ticket.priority }}">{{ ticket.priority }}</span>
+</div>
+
+<div class="detail-grid">
+  <!-- Main -->
+  <div>
+    <div class="card" style="margin-bottom:1rem">
+      <h2 style="font-size:1.2rem;font-weight:600;margin-bottom:.75rem">{{ ticket.title }}</h2>
+      <p style="color:var(--muted);font-size:.875rem;line-height:1.65">{{ ticket.description }}</p>
+    </div>
+
+    {% if session.role in ['admin','technician'] and ticket.status != 'Closed' %}
+    <div class="card">
+      <h3 style="font-size:.875rem;font-weight:600;margin-bottom:1rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-family:'IBM Plex Mono',monospace">Update Ticket</h3>
+      <div id="updateForm">
+        <div class="display:grid;grid-template-columns:{% if session.role == 'admin' %}1fr 1fr{% else %}1fr{% endif %};gap:1rem;margin-bottom:1rem">
+          <div class="form-group" style="margin:0">
+            <label>Status</label>
+            <select id="newStatus">
+              <option {% if ticket.status=='Open' %}selected{% endif %}>Open</option>
+              <option {% if ticket.status=='In Progress' %}selected{% endif %}>In Progress</option>
+              <option {% if ticket.status=='Resolved' %}selected{% endif %}>Resolved</option>
+            </select>
+          </div>
+          {% if session.role == 'admin' %}
+          <div class="form-group" style="margin:0">
+            <label>Reassign To</label>
+            <select id="assignTo">
+              {% for tech in techs %}
+              <option value="{{ tech.id }}" {% if ticket.assigned_to==tech.id %}selected{% endif %}>{{ tech.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+        </div>
+        <button class="btn btn-primary" onclick="doUpdate()" style="margin-top:1rem">Save Changes</button>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Sidebar -->
+  <div>
+    <div class="card">
+      <h3 style="font-size:.8rem;font-weight:600;margin-bottom:1rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-family:'IBM Plex Mono',monospace">Ticket Details</h3>
+
+      <div class="meta-row">
+        <span class="meta-key">Category</span>
+        <span>{{ ticket.category }}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-key">Priority</span>
+        <span class="badge badge-{{ ticket.priority }}">{{ ticket.priority }}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-key">Status</span>
+        <span class="badge badge-{{ ticket.status|replace(' ','') }}">{{ ticket.status }}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-key">Submitted by</span>
+        <span>{{ ticket.submitter or 'Unknown' }}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-key">Assigned to</span>
+        <span class="color:{% if ticket.assignee %}var(--text){% else %}var(--muted){% endif %}">{{ ticket.assignee or 'Unassigned' }}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-key">Created</span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:.8rem">{{ ticket.created_at[:16] }}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-key">Updated</span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:.8rem">{{ ticket.updated_at[:16] }}</span>
+      </div>
+      {% if ticket.status == 'Resolved' %}
+      <div style="margin-top:.75rem;padding:.6rem .75rem;background:#fef3c7;border:1px solid #fde68a;border-radius:4px;font-size:.775rem;color:#92400e">
+        ⏱ Auto-closes 24h after resolution
+      </div>
+      {% elif ticket.status == 'Closed' %}
+      <div style="margin-top:.75rem;padding:.6rem .75rem;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;font-size:.775rem;color:var(--muted)">
+        🗑 Auto-deleted 7 days after closing
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+function doUpdate() {
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/ticket/{{ ticket.id }}/update';
+  const fields = [['status', document.getElementById('newStatus').value]];
+  const assignEl = document.getElementById('assignTo');
+  if (assignEl) fields.push(['assigned_to', assignEl.value]);
+  fields.forEach(([k,v]) => {
+    const i = document.createElement('input'); i.name=k; i.value=v; form.appendChild(i);
+  });
+  document.body.appendChild(form);
+  form.submit();
+}
+</script>
+{% endblock %}

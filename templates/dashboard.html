@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — HelpDesk Pro{% endblock %}
+{% block content %}
+
+<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-top:1.5rem">
+  <div>
+    <h1>Ticket Dashboard</h1>
+    <p>{{ "All tickets" if session.role != 'user' else "Your submitted tickets" }}</p>
+  </div>
+  {% if session.role in ['admin','user'] %}
+  <a href="{{ url_for('submit_ticket') }}" class="btn btn-primary">+ New Ticket</a>
+  {% endif %}
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">Open</div>
+    <div class="stat-value" style="color:var(--open)">{{ stats.open }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">In Progress</div>
+    <div class="stat-value" style="color:var(--progress)">{{ stats.in_progress }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Resolved</div>
+    <div class="stat-value" style="color:var(--resolved)">{{ stats.resolved }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Critical</div>
+    <div class="stat-value" style="color:var(--critical)">{{ stats.critical }}</div>
+  </div>
+</div>
+
+<!-- Tabs + Filter Bar -->
+<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap">
+  <!-- Tabs -->
+  <div style="display:flex;gap:.375rem">
+    <a href="{{ url_for('dashboard', tab='active', priority=priority_filter) }}" class="tab-btn {% if tab=='active' %}tab-active{% endif %}">Open / In Progress</a>
+    <a href="{{ url_for('dashboard', tab='resolved', priority=priority_filter) }}" class="tab-btn {% if tab=='resolved' %}tab-active{% endif %}">Resolved</a>
+    <a href="{{ url_for('dashboard', tab='closed', priority=priority_filter) }}" class="tab-btn {% if tab=='closed' %}tab-active{% endif %}">Closed</a>
+  </div>
+
+  <!-- Priority filter -->
+  <span style="font-size:.8rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;">PRIORITY:</span>
+  <select id="priorityFilter" onchange="applyFilter()" style="width:150px">
+    <option value="" {% if not priority_filter %}selected{% endif %}>All</option>
+    <option value="Critical" {% if priority_filter=='Critical' %}selected{% endif %}>Critical</option>
+    <option value="High"     {% if priority_filter=='High' %}selected{% endif %}>High</option>
+    <option value="Medium"   {% if priority_filter=='Medium' %}selected{% endif %}>Medium</option>
+    <option value="Low"      {% if priority_filter=='Low' %}selected{% endif %}>Low</option>
+  </select>
+  {% if priority_filter %}
+  <a href="{{ url_for('dashboard', tab=tab) }}" class="btn btn-ghost" style="padding:.4rem .875rem;font-size:.8rem">✕ Clear</a>
+  {% endif %}
+
+  <span style="margin-left:auto;font-size:.8rem;color:var(--muted)">{{ tickets|length }} ticket{{ 's' if tickets|length != 1 }}</span>
+</div>
+
+<!-- Table -->
+<div class="card" style="padding:0">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>{{ 'Submitted By' if session.role != 'user' else 'Assignee' }}</th>
+          <th>Created</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tickets %}
+        <tr>
+          <td class="tid">#{{ t.id }}</td>
+          <td><a href="{{ url_for('ticket_detail', tid=t.id) }}">{{ t.title }}</a></td>
+          <td style="color:var(--muted);font-size:.825rem">{{ t.category }}</td>
+          <td><span class="badge badge-{{ t.priority }}">{{ t.priority }}</span></td>
+          <td><span class="badge badge-{{ t.status|replace(' ','') }}">{{ t.status }}</span></td>
+          <td style="color:var(--muted);font-size:.825rem">{{ t.submitter if session.role != 'user' else (t.assignee or '—') }}</td>
+          <td style="color:var(--muted);font-size:.775rem;font-family:'IBM Plex Mono',monospace">{{ t.created_at[:10] }}</td>
+          <td>
+            {% if session.role == 'user' and t.status in ('Resolved','Closed') %}
+            <form method="POST" action="/ticket/{{ t.id }}/hide" onsubmit="return confirm('Remove this ticket from your view?')">
+              <button type="submit" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:.775rem;font-family:'IBM Plex Mono',monospace;padding:2px 6px;border-radius:3px;border:1px solid var(--border);" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">remove</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:3rem">No tickets found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function applyFilter() {
+  const p = document.getElementById('priorityFilter').value;
+  const params = new URLSearchParams();
+  params.set('tab', '{{ tab }}');
+  if (p) params.set('priority', p);
+  window.location.href = '/dashboard?' + params.toString();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Analytics — HelpDesk Pro{% endblock %}
+{% block content %}
+
+<div class="page-header" style="margin-top:1.5rem">
+  <h1>Analytics</h1>
+  <p>{% if session.role == 'technician' %}Your personal ticket stats — assigned to {{ session.username }}{% else %}Company-wide ticket volume and trends{% endif %}</p>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-bottom:2rem">
+
+  <!-- By Status -->
+  <div class="card">
+    <h3 style="font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-family:'IBM Plex Mono',monospace;margin-bottom:1rem">By Status</h3>
+    {% for row in by_status %}
+    <div style="margin-bottom:.875rem">
+      <div style="display:flex;justify-content:space-between;font-size:.825rem;margin-bottom:.3rem">
+        <span>{{ row.status }}</span>
+        <span class="mono" style="color:var(--muted)">{{ row.c }}</span>
+      </div>
+      <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+        <div class="height:100%;width:{% if total %}{{ (row.c / total * 100)|int }}%{% else %}0%{% endif %};background:{% if row.status=='Open' %}var(--open){% elif row.status=='In Progress' %}var(--progress){% elif row.status=='Resolved' %}var(--resolved){% else %}var(--muted){% endif %};border-radius:2px;transition:width .3s"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- By Priority -->
+  <div class="card">
+    <h3 style="font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-family:'IBM Plex Mono',monospace;margin-bottom:1rem">By Priority</h3>
+    {% for row in by_priority %}
+    <div style="margin-bottom:.875rem">
+      <div style="display:flex;justify-content:space-between;font-size:.825rem;margin-bottom:.3rem">
+        <span>{{ row.priority }}</span>
+        <span class="mono" style="color:var(--muted)">{{ row.c }}</span>
+      </div>
+      <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+        <div class="height:100%;width:{% if total %}{{ (row.c / total * 100)|int }}%{% else %}0%{% endif %};background:{% if row.priority=='Critical' %}var(--critical){% elif row.priority=='High' %}var(--high){% elif row.priority=='Medium' %}var(--medium){% else %}var(--low){% endif %};border-radius:2px;transition:width .3s"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- By Category -->
+  <div class="card">
+    <h3 style="font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-family:'IBM Plex Mono',monospace;margin-bottom:1rem">By Category</h3>
+    {% for row in by_category %}
+    <div style="margin-bottom:.875rem">
+      <div style="display:flex;justify-content:space-between;font-size:.825rem;margin-bottom:.3rem">
+        <span>{{ row.category }}</span>
+        <span class="mono" style="color:var(--muted)">{{ row.c }}</span>
+      </div>
+      <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+        <div class="height:100%;width:{% if total %}{{ (row.c / total * 100)|int }}%{% else %}0%{% endif %};background:var(--accent);border-radius:2px;transition:width .3s"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Recent Tickets -->
+<div class="card" style="padding:0">
+  <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border)">
+    <h3 style="font-size:.875rem;font-weight:600">Recent Activity</h3>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Title</th><th>Submitted By</th><th>Priority</th><th>Status</th><th>Date</th></tr>
+      </thead>
+      <tbody>
+        {% for t in recent %}
+        <tr>
+          <td class="tid">#{{ '%04d'|format(t.id) }}</td>
+          <td><a href="{{ url_for('ticket_detail', tid=t.id) }}">{{ t.title }}</a></td>
+          <td style="color:var(--muted);font-size:.825rem">{{ t.submitter }}</td>
+          <td><span class="badge badge-{{ t.priority }}">{{ t.priority }}</span></td>
+          <td><span class="badge badge-{{ t.status|replace(' ','') }}">{{ t.status }}</span></td>
+          <td style="color:var(--muted);font-size:.775rem;font-family:'IBM Plex Mono',monospace">{{ t.created_at[:10] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

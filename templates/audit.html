@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }} — HelpDesk Pro{% endblock %}
+{% block content %}
+
+<div class="page-header" style="margin-top:1.5rem">
+  <h1>{{ page_title }}</h1>
+  <p>{{ page_sub }}</p>
+</div>
+
+<div class="card" style="padding:0">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Ticket</th>
+          <th>Action</th>
+          <th>Detail</th>
+          <th>By</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:.775rem;color:var(--muted);white-space:nowrap">{{ log.created_at }}</td>
+          <td>
+            {% if log.ticket_id %}
+            <a href="{{ url_for('ticket_detail', tid=log.ticket_id) }}" style="font-family:'IBM Plex Mono',monospace;font-size:.8rem">
+              #{{ log.ticket_id }} {% if log.ticket_title %}<span style="color:var(--muted)">— {{ log.ticket_title[:30] }}{% if log.ticket_title|length > 30 %}…{% endif %}</span>{% endif %}
+            </a>
+            {% else %}
+            <span style="color:var(--muted);font-size:.8rem">—</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge
+              {% if 'Submitted' in log.action %}badge-Open
+              {% elif 'Closed' in log.action %}badge-Closed
+              {% elif 'Resolved' in log.action %}badge-Resolved
+              {% elif 'Updated' in log.action or 'Changed' in log.action %}badge-InProgress
+              {% else %}badge-Low{% endif %}">
+              {{ log.action }}
+            </span>
+          </td>
+          <td style="font-size:.825rem;color:var(--muted);max-width:300px">{{ log.detail or '—' }}</td>
+          <td style="font-size:.825rem;font-family:'IBM Plex Mono',monospace;color:var(--muted)">{{ log.actor_name or '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:3rem">No audit events yet. Actions will appear here going forward.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

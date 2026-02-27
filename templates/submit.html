@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}New Ticket — HelpDesk Pro{% endblock %}
+{% block content %}
+
+<div style="max-width:640px;margin-top:1.5rem">
+  <div class="page-header">
+    <h1>Submit New Ticket</h1>
+    <p>Fill out the form below to open a support request</p>
+  </div>
+
+  <div class="card">
+    <div id="form">
+      <div class="form-group">
+        <label>Issue Title *</label>
+        <input type="text" id="title" placeholder="Brief description of the issue" required>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="form-group">
+          <label>Category *</label>
+          <select id="category">
+            <option>Network</option>
+            <option>Hardware</option>
+            <option>Software</option>
+            <option>Security</option>
+            <option>Account / Access</option>
+            <option>Email</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Priority *</label>
+          <select id="priority">
+            <option>Low</option>
+            <option selected>Medium</option>
+            <option>High</option>
+            <option>Critical</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Description *</label>
+        <textarea id="description" rows="5" placeholder="Describe the issue in detail — when it started, what you've tried, affected systems…"></textarea>
+      </div>
+
+      <div style="display:flex;gap:.75rem;margin-top:.5rem">
+        <button class="btn btn-primary" onclick="submitTicket()">Submit Ticket →</button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:1rem;padding:.875rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;font-size:.8rem;color:var(--muted)">
+    <strong style="color:var(--text)">Priority Guide</strong><br>
+    <span style="color:var(--critical)">Critical</span> — Total outage / data loss &nbsp;|&nbsp;
+    <span style="color:var(--high)">High</span> — Major function impaired &nbsp;|&nbsp;
+    <span style="color:var(--medium)">Medium</span> — Degraded performance &nbsp;|&nbsp;
+    <span style="color:var(--low)">Low</span> — Minor / cosmetic
+  </div>
+</div>
+
+<script>
+function submitTicket() {
+  const title       = document.getElementById('title').value.trim();
+  const description = document.getElementById('description').value.trim();
+  if (!title || !description) { alert('Please fill in all required fields.'); return; }
+
+  const form = document.createElement('form');
+  form.method = 'POST'; form.action = '/submit';
+  [['title',title],['description',description],
+   ['category', document.getElementById('category').value],
+   ['priority',  document.getElementById('priority').value]
+  ].forEach(([k,v]) => {
+    const i = document.createElement('input');
+    i.name = k; i.value = v; form.appendChild(i);
+  });
+  document.body.appendChild(form);
+  form.submit();
+}
+</script>
+{% endblock %}

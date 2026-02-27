@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Settings — HelpDesk Pro{% endblock %}
+{% block content %}
+
+<div style="max-width:520px;margin-top:1.5rem">
+  <div class="page-header">
+    <h1>Account Settings</h1>
+    <p>Manage your account preferences</p>
+  </div>
+
+  <!-- Account Info -->
+  <div class="card" style="margin-bottom:1rem">
+    <h3 style="font-size:.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-family:'IBM Plex Mono',monospace;margin-bottom:1rem">Account Info</h3>
+    <div class="meta-row">
+      <span class="meta-key">Username</span>
+      <span style="font-family:'IBM Plex Mono',monospace">{{ session.username }}</span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-key">Role</span>
+      <span class="role-badge role-{{ session.role }}">{{ session.role }}</span>
+    </div>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="card" style="border-color:#fecaca">
+    <h3 style="font-size:.8rem;font-weight:600;color:#dc2626;text-transform:uppercase;letter-spacing:.08em;font-family:'IBM Plex Mono',monospace;margin-bottom:.5rem">Danger Zone</h3>
+    <p style="font-size:.825rem;color:var(--muted);margin-bottom:1.25rem">Permanently delete your account. This cannot be undone. Your submitted tickets will remain in the system but will be unlinked from your account.</p>
+    <button
+      onclick="confirmDelete()"
+      style="background:#fee2e2;color:#dc2626;border:1px solid #fecaca;border-radius:4px;padding:.55rem 1.25rem;font-size:.875rem;font-weight:500;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:all .15s"
+      onmouseover="this.style.background='#fecaca'"
+      onmouseout="this.style.background='#fee2e2'">
+      Delete My Account
+    </button>
+  </div>
+</div>
+
+<form id="deleteForm" method="POST" action="/delete-account" style="display:none"></form>
+
+<script>
+function confirmDelete() {
+  if (confirm('Are you sure you want to delete your account?\n\nThis action cannot be undone.')) {
+    document.getElementById('deleteForm').submit();
+  }
+}
+</script>
+{% endblock %}

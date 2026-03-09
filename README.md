@@ -1,4 +1,4 @@
-# HelpDesk Pro — IT Service Desk Ticketing System
+# IT Helpdesk Ticketing System
 
 A web-based IT ticketing system I built to understand how real helpdesk tools like ServiceNow actually work under the hood. The entire platform runs on Flask and SQLite with no frontend frameworks, just plain HTML, CSS, and a bit of JavaScript. 
 
@@ -6,14 +6,14 @@ A web-based IT ticketing system I built to understand how real helpdesk tools li
 
 ## What it does
 
-There are three roles — Admin, Technician, and User — and each one sees a different version of the app.
+There are three roles (Admin, Technician, and User) and each one sees a different version of the app.
 
 Users can submit tickets, track their status, and remove them from their view once they're resolved or closed. Technicians get assigned tickets automatically based on who has the lightest workload at that moment, and they can update status as they work through them. Admins see everything, can reassign tickets, and have access to a global audit log.
 
 A few things I thought were worth building properly:
 
 - **Auto-assignment** — when a ticket comes in, it checks which tech has the fewest active tickets and routes it there. Ties are broken randomly.
-- **Ticket lifecycle** — tickets go Open → In Progress → Resolved, then automatically move to Closed after 24 hours. After 7 days in Closed they're permanently deleted. Nobody can manually close a ticket.
+- **Ticket lifecycle** — tickets go Open > In Progress > Resolved, then automatically move to Closed after 24 hours. After 7 days in Closed they're permanently deleted. Nobody can manually close a ticket.
 - **Role-scoped views** — techs only see their own queue, not other techs' tickets. Analytics shows personal stats for techs and company-wide stats for admins.
 - **Audit log** — every status change and reassignment is logged, scoped to what's relevant for each role. Shows the last 30 days.
 
